@@ -36,6 +36,7 @@
                 panel
                 plotly
                 numpy
+                pytest
               ]);
           };
         }
