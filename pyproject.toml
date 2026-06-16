@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheddest"
+version = "0.1"
+description = "This is a demo package"
+authors = [{name = "Becker Awqatty"}]
+license = "MIT"
+license-files = [
+    "LICENSE.txt"
+]
+dependencies = [
+    "panel"
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
