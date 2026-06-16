@@ -5,6 +5,7 @@ from math import inf
 import pytest
 
 from cheddest import intervals
+from cheddest.intervals import eps
 
 
 @pytest.mark.parametrize(
@@ -332,7 +333,7 @@ def test_NumberLineDivider_arithmetic(lhs, rhs, op, expt_result):
 
 
 def test_NumberLineDivider_eps_literals():
-    assert 3 + intervals.eps == intervals.NumberLineDivider(3, True)
+    assert 3 + eps == intervals.NumberLineDivider(3, True)
     assert 1 - intervals.ε == intervals.NumberLineDivider(1, False)
 
 
@@ -613,45 +614,45 @@ def test_DisjointInterval_init():
     "pairs, expt_bounds",
     [
         ([], ()),
-        ([(0, 1)], (0 - intervals.eps, 1 - intervals.eps)),
+        ([(0, 1)], (0 - eps, 1 - eps)),
         ([(0, 0)], ()),
         ([(0, -1)], ()),
         (
             [(0, 1), (2.5, 3.5)],
             (
-                0 - intervals.eps,
-                1 - intervals.eps,
-                2.5 - intervals.eps,
-                3.5 - intervals.eps,
+                0 - eps,
+                1 - eps,
+                2.5 - eps,
+                3.5 - eps,
             ),
         ),
         (
             [(2.5, 3.5), (0, 1)],
             (
-                0 - intervals.eps,
-                1 - intervals.eps,
-                2.5 - intervals.eps,
-                3.5 - intervals.eps,
+                0 - eps,
+                1 - eps,
+                2.5 - eps,
+                3.5 - eps,
             ),
         ),
-        ([(0, 1), (0.5, 3.5)], (0 - intervals.eps, 3.5 - intervals.eps)),
-        ([(0, 1), (1, 3.5)], (0 - intervals.eps, 3.5 - intervals.eps)),
+        ([(0, 1), (0.5, 3.5)], (0 - eps, 3.5 - eps)),
+        ([(0, 1), (1, 3.5)], (0 - eps, 3.5 - eps)),
         (
-            [(0, 1 - intervals.eps), (1 + intervals.eps, 3.5)],
+            [(0, 1 - eps), (1 + eps, 3.5)],
             (
-                0 - intervals.eps,
-                1 - intervals.eps,
-                1 + intervals.eps,
-                3.5 - intervals.eps,
+                0 - eps,
+                1 - eps,
+                1 + eps,
+                3.5 - eps,
             ),
         ),
         (
             [(None, 1), (2, None)],
             (
-                -inf - intervals.eps,
-                1 - intervals.eps,
-                2 - intervals.eps,
-                inf - intervals.eps,
+                -inf - eps,
+                1 - eps,
+                2 - eps,
+                inf - eps,
             ),
         ),
     ],
@@ -671,7 +672,7 @@ def test_DisjointInterval_from_ranges(pairs, expt_bounds):
         (intervals.DisjointInterval.from_ranges((0, 1), (2, 3), (4, 5)), 2, True),
         (intervals.DisjointInterval.from_ranges((0, 1), (1, 2)), 1, True),
         (
-            intervals.DisjointInterval.from_ranges((0, 1), (1 + intervals.eps, 2)),
+            intervals.DisjointInterval.from_ranges((0, 1), (1 + eps, 2)),
             1,
             False,
         ),
@@ -686,7 +687,7 @@ def test_DisjointInterval_contains(itvl, value, expt_result):
     [
         (intervals.DisjointInterval(), 0),
         (intervals.DisjointInterval.from_ranges((0, 1)), 1),
-        (intervals.DisjointInterval.from_ranges((0, 1 + intervals.eps)), 1),
+        (intervals.DisjointInterval.from_ranges((0, 1 + eps)), 1),
         (intervals.DisjointInterval.from_ranges((0, 1), (2, 3), (4, 5)), 3),
     ],
 )
@@ -698,7 +699,7 @@ def test_DisjointInterval_breadth(itvl, expt_result):
     "itvl, expt_result",
     [
         (intervals.DisjointInterval(), False),
-        (intervals.DisjointInterval.from_ranges((0, 0 + intervals.eps)), True),
+        (intervals.DisjointInterval.from_ranges((0, 0 + eps)), True),
         (intervals.DisjointInterval.from_ranges((0, 1), (2, 3), (4, 5)), True),
     ],
 )
@@ -710,7 +711,7 @@ def test_DisjointInterval_eq():
     assert intervals.DisjointInterval() == intervals.DisjointInterval()
     assert intervals.DisjointInterval.from_ranges(
         (0, 0)
-    ) != intervals.DisjointInterval.from_ranges((0, 0 + intervals.eps))
+    ) != intervals.DisjointInterval.from_ranges((0, 0 + eps))
 
 
 @pytest.mark.parametrize(
@@ -743,10 +744,8 @@ def test_DisjointInterval_eq():
         ),
         (
             intervals.DisjointInterval.from_ranges((0, 1)),
-            intervals.DisjointInterval.from_ranges(
-                (0 + intervals.eps, 1 + intervals.eps)
-            ),
-            intervals.DisjointInterval.from_ranges((0, 1 + intervals.eps)),
+            intervals.DisjointInterval.from_ranges((0 + eps, 1 + eps)),
+            intervals.DisjointInterval.from_ranges((0, 1 + eps)),
         ),
         (
             intervals.DisjointInterval.from_ranges((0, 2), (4, 6)),
@@ -790,10 +789,8 @@ def test_DisjointInterval_union(itvl1, itvl2, expt_result):
         ),
         (
             intervals.DisjointInterval.from_ranges((0, 1)),
-            intervals.DisjointInterval.from_ranges(
-                (0 + intervals.eps, 1 + intervals.eps)
-            ),
-            intervals.DisjointInterval.from_ranges((0 + intervals.eps, 1)),
+            intervals.DisjointInterval.from_ranges((0 + eps, 1 + eps)),
+            intervals.DisjointInterval.from_ranges((0 + eps, 1)),
         ),
         (
             intervals.DisjointInterval.from_ranges((0, 2), (4, 6)),
