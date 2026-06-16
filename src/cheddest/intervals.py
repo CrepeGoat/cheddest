@@ -1,5 +1,6 @@
 import bisect
 import functools
+import itertools
 from math import inf, isnan
 
 
@@ -267,7 +268,7 @@ class DisjointInterval:
     @property
     def _ranges(self):
         """Iterate over all sub-intervals whose union defines the space."""
-        return zip(self._bounds[::2], self._bounds[1::2])
+        return itertools.batched(self._bounds, 2)
 
     def __contains__(self, val):
         """Test item containment."""
