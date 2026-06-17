@@ -387,3 +387,46 @@ class DisjointInterval:
         comp_interval = DisjointInterval()
         comp_interval._bounds = tuple(bounds)
         return comp_interval
+
+
+def _throttled_iter_pairs(iter1, iter2, null1=None, null2=None):
+    iter1 = iter(iter1)
+    iter2 = iter(iter2)
+
+    try:
+        item1 = next(iter1)
+    except StopIteration:
+        for item2 in iter2:
+            _ = yield (null1, item2)
+        return
+
+    try:
+        item2 = next(iter2)
+    except StopIteration:
+        yield (item1, null2)
+        for item1 in iter1:
+            _ = yield (item1, null2)
+        return
+
+    while True:
+        is_right = yield (item1, item2)
+        if is_right == True:
+            try:
+                item2 = next(iter2)
+            except StopIteration:
+                yield (item1, null2)
+                for item1 in iter1:
+                    _ = yield (item1, null2)
+                return
+        elif is_right == False:
+            try:
+                item1 = next(iter1)
+            except StopIteration:
+                yield (null1, item2)
+                for item2 in iter2:
+                    _ = yield (null1, item2)
+                return
+        else:
+            raise ValueError(
+                f"must call `.send` with True or False; {is_right} is not valid"
+            )

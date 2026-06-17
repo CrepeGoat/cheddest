@@ -804,5 +804,108 @@ def test_DisjointInterval_intersection(itvl1, itvl2, expt_result):
     assert itvl2.intersection(itvl1) == expt_result
 
 
+@pytest.mark.parametrize(
+    "iter1, iter2, sends, expt_result",
+    [
+        (
+            "",
+            "",
+            [],
+            [],
+        ),
+        (
+            "A",
+            "",
+            [],
+            [("A", "null2")],
+        ),
+        (
+            "",
+            "Z",
+            [],
+            [("null1", "Z")],
+        ),
+        (
+            "ABC",
+            "XYZ",
+            [True, False, False, True, True],
+            [
+                ("A", "X"),
+                ("A", "Y"),
+                ("B", "Y"),
+                ("C", "Y"),
+                ("C", "Z"),
+                ("C", "null2"),
+            ],
+        ),
+        (
+            "ABC",
+            "XYZ",
+            [True, False, False, True, False],
+            [
+                ("A", "X"),
+                ("A", "Y"),
+                ("B", "Y"),
+                ("C", "Y"),
+                ("C", "Z"),
+                ("null1", "Z"),
+            ],
+        ),
+        (
+            "ABC",
+            "XYZ",
+            [True, True, True, None, None],
+            [
+                ("A", "X"),
+                ("A", "Y"),
+                ("A", "Z"),
+                ("A", "null2"),
+                ("B", "null2"),
+                ("C", "null2"),
+            ],
+        ),
+        (
+            "ABC",
+            "XYZ",
+            [False, False, False, None, None],
+            [
+                ("A", "X"),
+                ("B", "X"),
+                ("C", "X"),
+                ("null1", "X"),
+                ("null1", "Y"),
+                ("null1", "Z"),
+            ],
+        ),
+    ],
+)
+def test_throttled_iter_pairs(iter1, iter2, sends, expt_result):
+    iter_pairs = intervals._throttled_iter_pairs(
+        iter1, iter2, null1="null1", null2="null2"
+    )
+
+    result = []
+    print(result)
+
+    try:
+        result.append(next(iter_pairs))
+        print(result)
+    except StopIteration:
+        pass
+    else:
+        for s in sends:
+            result.append(iter_pairs.send(s))
+            print(result)
+
+    try:
+        next(iter_pairs)
+    except StopIteration:
+        pass
+    else:
+        raise AssertionError("iterator did not terminate")
+
+    assert result == expt_result
+
+
 if __name__ == "__main__":
     pytest.main()
