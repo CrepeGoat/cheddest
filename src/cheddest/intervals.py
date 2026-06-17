@@ -335,7 +335,7 @@ class DisjointInterval:
         if not other:
             return self
 
-        sorted_itvls = _iter_merged_sorteds(self._ranges, other._ranges)
+        sorted_itvls = _merged_iter_sorted(self._ranges, other._ranges)
         bounds = [*next(sorted_itvls)]
 
         for itvl in sorted_itvls:
@@ -350,7 +350,7 @@ class DisjointInterval:
         return comp_interval
 
 
-def _iter_merged_sorteds(iter1, iter2):
+def _merged_iter_sorted(iter1, iter2, key=lambda x: x):
     iter1 = iter(iter1)
     iter2 = iter(iter2)
 
@@ -362,7 +362,7 @@ def _iter_merged_sorteds(iter1, iter2):
 
     while True:
         for item2 in iter2:
-            if item2 <= item1:
+            if key(item2) <= key(item1):
                 yield item2
             else:
                 yield item1
