@@ -805,6 +805,58 @@ def test_DisjointInterval_intersection(itvl1, itvl2, expt_result):
 
 
 @pytest.mark.parametrize(
+    "iter1, iter2, expt_result",
+    [
+        (
+            "",
+            "",
+            [],
+        ),
+        (
+            "A",
+            "",
+            [("A", "null2")],
+        ),
+        (
+            "",
+            "Z",
+            [("null1", "Z")],
+        ),
+        (
+            "ABC",
+            "XYZ",
+            [
+                ("A", "X"),
+                ("B", "X"),
+                ("C", "X"),
+                ("null1", "X"),
+                ("null1", "Y"),
+                ("null1", "Z"),
+            ],
+        ),
+        (
+            "ACE",
+            "BDF",
+            [
+                ("A", "B"),
+                ("C", "B"),
+                ("C", "D"),
+                ("E", "D"),
+                ("E", "F"),
+                ("null1", "F"),
+            ],
+        ),
+    ],
+)
+def test_iter_sorted_pairs(iter1, iter2, expt_result):
+    iter_pairs = intervals._iter_sorted_pairs(
+        iter1, iter2, null1="null1", null2="null2"
+    )
+
+    assert list(iter_pairs) == expt_result
+
+
+@pytest.mark.parametrize(
     "iter1, iter2, sends, expt_result",
     [
         (

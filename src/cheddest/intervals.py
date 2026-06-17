@@ -296,29 +296,27 @@ class DisjointInterval:
 
         bounds = []
 
-        if self and other:
-            ranges1 = _paused_iter(self._ranges)
-            ranges2 = _paused_iter(other._ranges)
+        if (not self) or (not other):
+            return DisjointInterval()
 
-            next(ranges1)
-            next(ranges2)
+        for itvl1, itvl2 in _iter_sorted_pairs(
+            self._ranges, other._ranges, key=lambda x: x[1]
+        ):
+            if (itvl1 is None) or (itvl2 is None):
+                break
 
-            while True:
-                b1 = max(ranges1.send(True)[0], ranges2.send(True)[0])
-                b2 = min(ranges1.send(True)[1], ranges2.send(True)[1])
+            (itvl1_start, itvl1_end), (itvl2_start, itvl2_end) = itvl1, itvl2
 
-                if b1 < b2:
-                    bounds.append(b1)
-                    bounds.append(b2)
+            start = max(itvl1_start, itvl2_start)
+            end = min(itvl1_end, itvl2_end)
 
-                try:
-                    next(min(ranges1, ranges2, key=lambda r: r.send(True)[1]))
-                except StopIteration:
-                    break
+            if start < end:
+                bounds.append(start)
+                bounds.append(end)
 
-        comp_interval = DisjointInterval()
-        comp_interval._bounds = tuple(bounds)
-        return comp_interval
+        result = DisjointInterval()
+        result._bounds = tuple(bounds)
+        return result
 
     def union(self, other):
         """
@@ -352,19 +350,6 @@ class DisjointInterval:
         return comp_interval
 
 
-def _paused_iter(iterable):
-    iterator = iter(iterable)
-
-    while True:
-        try:
-            value = next(iterator)
-        except StopIteration:
-            return
-
-        while (yield value):
-            pass
-
-
 def _iter_merged_sorteds(iter1, iter2):
     iter1 = iter(iter1)
     iter2 = iter(iter2)
@@ -394,12 +379,15 @@ def _iter_merged_sorteds(iter1, iter2):
 def _iter_sorted_pairs(iter1, iter2, null1=None, null2=None, key=lambda x: x):
     iter_pairs = _throttled_iter_pairs(iter1, iter2, null1, null2)
 
-    item1, item2 = next(iter_pairs)
-    yield (item1, item2)
-
-    while True:
-        item1, item2 = iter_pairs.send(key(item1) >= key(item2))
+    try:
+        item1, item2 = next(iter_pairs)
         yield (item1, item2)
+
+        while True:
+            item1, item2 = iter_pairs.send(key(item1) >= key(item2))
+            yield (item1, item2)
+    except StopIteration:
+        return
 
 
 def _throttled_iter_pairs(iter1, iter2, null1=None, null2=None):
