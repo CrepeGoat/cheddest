@@ -294,23 +294,11 @@ class DisjointInterval:
                 "cannot intersect interval with object of type {}".format(type(other))
             )
 
-        def paused_iter(iterable):
-            iterator = iter(iterable)
-
-            while True:
-                try:
-                    value = next(iterator)
-                except StopIteration:
-                    return
-
-                while (yield value):
-                    pass
-
         bounds = []
 
         if self and other:
-            ranges1 = paused_iter(self._ranges)
-            ranges2 = paused_iter(other._ranges)
+            ranges1 = _paused_iter(self._ranges)
+            ranges2 = _paused_iter(other._ranges)
 
             next(ranges1)
             next(ranges2)
@@ -349,32 +337,7 @@ class DisjointInterval:
         if not other:
             return self
 
-        def iter_merged_sorteds(iter1, iter2):
-            iter1 = iter(iter1)
-            iter2 = iter(iter2)
-
-            try:
-                item1 = next(iter1)
-            except StopIteration:
-                yield from iter2
-                return
-
-            while True:
-                for item2 in iter2:
-                    if item2 <= item1:
-                        yield item2
-                    else:
-                        yield item1
-                        break
-                else:
-                    yield item1
-                    yield from iter1
-                    return
-
-                item1 = item2
-                iter1, iter2 = iter2, iter1
-
-        sorted_itvls = iter_merged_sorteds(self._ranges, other._ranges)
+        sorted_itvls = _iter_merged_sorteds(self._ranges, other._ranges)
         bounds = [*next(sorted_itvls)]
 
         for itvl in sorted_itvls:
@@ -387,6 +350,56 @@ class DisjointInterval:
         comp_interval = DisjointInterval()
         comp_interval._bounds = tuple(bounds)
         return comp_interval
+
+
+def _paused_iter(iterable):
+    iterator = iter(iterable)
+
+    while True:
+        try:
+            value = next(iterator)
+        except StopIteration:
+            return
+
+        while (yield value):
+            pass
+
+
+def _iter_merged_sorteds(iter1, iter2):
+    iter1 = iter(iter1)
+    iter2 = iter(iter2)
+
+    try:
+        item1 = next(iter1)
+    except StopIteration:
+        yield from iter2
+        return
+
+    while True:
+        for item2 in iter2:
+            if item2 <= item1:
+                yield item2
+            else:
+                yield item1
+                break
+        else:
+            yield item1
+            yield from iter1
+            return
+
+        item1 = item2
+        iter1, iter2 = iter2, iter1
+
+
+def _iter_sorted_pairs(iter1, iter2, null1=None, null2=None, key=lambda x: x):
+    iter_pairs = _throttled_iter_pairs(iter1, iter2, null1, null2)
+
+    item1, item2 = next(iter_pairs)
+    yield (item1, item2)
+
+    while True:
+        item1, item2 = iter_pairs.send(key(item1) >= key(item2))
+        yield (item1, item2)
 
 
 def _throttled_iter_pairs(iter1, iter2, null1=None, null2=None):
